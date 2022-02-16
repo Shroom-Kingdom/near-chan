@@ -1,7 +1,7 @@
 [package]
-name = "nft_simple"
+name = "near-chan-nft"
 version = "0.1.0"
-authors = ["Near Inc <hello@nearprotocol.com>"]
+authors = ["Mario Reder <mario.reder@pm.me>"]
 edition = "2021"
 
 [lib]
