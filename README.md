@@ -67,17 +67,22 @@ declare -A variant5=(
 declare -n variant
 
 for variant in ${!variant@}; do
+  near call $NFT_CONTRACT_ID nft_create_series '{
+    "token_series_id": "'${variant[token_id]}'",
+    "metadata": {
+      "title": "Shroom Kingdom NEARchan '${variant[title]}'",
+      "description": "https://near-chan.github.io/",
+      "media": "'${variant[media]}'",
+      "copies": '$copies',
+      "issued_at": '$timestamp',
+      "reference": "'${variant[reference]}'"
+    }
+  }' --accountId $NFT_CONTRACT_ID --amount 0.1
+
   for ((i=1; i<=$copies; i++)); do
     near call $NFT_CONTRACT_ID nft_mint '{
-      "token_id": "'${variant[token_id]}':'$i'",
-      "metadata": {
-        "title": "Shroom Kingdom NEARchan #'${variant[title]}' #'$i'",
-        "description": "https://near-chan.github.io/",
-        "media": "'${variant[media]}'",
-        "copies": '$copies',
-        "issued_at": '$timestamp',
-        "reference": "'${variant[reference]}'"
-      },
+      "edition_id": "'$i'",
+      "token_series_id": "'${variant[token_id]}'",
       "receiver_id": "'$NFT_CONTRACT_ID'",
       "perpetual_royalties": {
         "'$DAO_ID'": 1000

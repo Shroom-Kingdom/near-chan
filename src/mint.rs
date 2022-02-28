@@ -5,8 +5,8 @@ impl Contract {
     #[payable]
     pub fn nft_mint(
         &mut self,
-        token_id: TokenId,
-        metadata: TokenMetadata,
+        edition_id: TokenId,
+        token_series_id: TokenSeriesId,
         receiver_id: AccountId,
         //we add an optional parameter for perpetual royalties
         perpetual_royalties: Option<HashMap<AccountId, u32>>,
@@ -17,10 +17,13 @@ impl Contract {
         // create a royalty map to store in the token
         let mut royalty = HashMap::new();
 
-        // if perpetual royalties were passed into the function: 
+        // if perpetual royalties were passed into the function:
         if let Some(perpetual_royalties) = perpetual_royalties {
             //make sure that the length of the perpetual royalties is below 7 since we won't have enough GAS to pay out that many people
-            assert!(perpetual_royalties.len() < 7, "Cannot add more than 6 perpetual royalty amounts");
+            assert!(
+                perpetual_royalties.len() < 7,
+                "Cannot add more than 6 perpetual royalty amounts"
+            );
 
             //iterate through the perpetual royalties and insert the account and amount in the royalty map
             for (account, amount) in perpetual_royalties {
@@ -28,10 +31,11 @@ impl Contract {
             }
         }
 
-        //specify the token struct that contains the owner ID 
+        //specify the token struct that contains the owner ID
         let token = Token {
             //set the owner ID equal to the receiver ID passed into the function
             owner_id: receiver_id,
+            creator_id: env::signer_account_id(),
             //we set the approved account IDs to the default value (an empty map)
             approved_account_ids: Default::default(),
             //the next approval ID is set to 0
@@ -39,12 +43,27 @@ impl Contract {
             //the map of perpetual royalties for the token (The owner will get 100% - total perpetual royalties)
             royalty,
         };
+        let mut token_id = token_series_id.clone();
+        token_id.push(TOKEN_DELIMITER);
+        token_id.push_str(&edition_id);
 
         //insert the token ID and token struct and make sure that the token doesn't exist
         assert!(
             self.tokens_by_id.insert(&token_id, &token).is_none(),
             "Token already exists"
         );
+
+        let token_series = self.series_by_id.get(&token_series_id).unwrap();
+        let mut metadata = token_series.metadata;
+        metadata.title = metadata.title.map(|mut title| {
+            title.push_str(TITLE_DELIMITER);
+            title.push_str(&edition_id);
+            if let Some(copies) = metadata.copies {
+                title.push_str(EDITION_DELIMITER);
+                title.push_str(&copies.to_string());
+            }
+            title
+        });
 
         //insert the token ID and metadata
         self.token_metadata_by_id.insert(&token_id, &metadata);

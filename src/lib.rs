@@ -14,6 +14,7 @@ pub use crate::metadata::*;
 pub use crate::mint::*;
 pub use crate::nft_core::*;
 pub use crate::royalty::*;
+pub use crate::series::*;
 
 mod approval;
 mod enumeration;
@@ -23,6 +24,7 @@ mod metadata;
 mod mint;
 mod nft_core;
 mod royalty;
+mod series;
 
 /// This spec can be treated like a version of the standard.
 pub const NFT_METADATA_SPEC: &str = "nft-1.0.0";
@@ -41,6 +43,8 @@ pub struct Contract {
     //keeps track of the token struct for a given token ID
     pub tokens_by_id: LookupMap<TokenId, Token>,
 
+    pub series_by_id: LookupMap<TokenSeriesId, TokenSeries>,
+
     //keeps track of the token metadata for a given token ID
     pub token_metadata_by_id: UnorderedMap<TokenId, TokenMetadata>,
 
@@ -53,6 +57,8 @@ pub struct Contract {
 pub enum StorageKey {
     TokensPerOwner,
     TokenPerOwnerInner { account_id_hash: CryptoHash },
+    SeriesById,
+    TokensBySeriesInner { token_series: String },
     TokensById,
     TokenMetadataById,
     NFTContractMetadata,
@@ -96,6 +102,7 @@ impl Contract {
             //Storage keys are simply the prefixes used for the collections. This helps avoid data collision
             tokens_per_owner: LookupMap::new(StorageKey::TokensPerOwner.try_to_vec().unwrap()),
             tokens_by_id: LookupMap::new(StorageKey::TokensById.try_to_vec().unwrap()),
+            series_by_id: LookupMap::new(StorageKey::SeriesById.try_to_vec().unwrap()),
             token_metadata_by_id: UnorderedMap::new(
                 StorageKey::TokenMetadataById.try_to_vec().unwrap(),
             ),
