@@ -84,7 +84,7 @@ impl Contract {
                 name: "Shroom Kingdom NEARchan".to_string(),
                 symbol: "SHRMNEARCHAN".to_string(),
                 icon: None,
-                base_uri: Some("https://gateway.pinata.cloud/ipfs".to_string()),
+                base_uri: None,
                 reference: None,
                 reference_hash: None,
             },
