@@ -47,11 +47,11 @@ impl Contract {
         token_id.push(TOKEN_DELIMITER);
         token_id.push_str(&edition_id);
 
-        //insert the token ID and token struct and make sure that the token doesn't exist
         assert!(
-            self.tokens_by_id.insert(&token_id, &token).is_none(),
+            !self.tokens_by_id.contains_key(&token_id),
             "Token already exists"
         );
+        self.tokens_by_id.insert(&token_id, &token);
 
         let token_series = self.series_by_id.get(&token_series_id).unwrap();
         let mut metadata = token_series.metadata;

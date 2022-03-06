@@ -29,6 +29,12 @@ pub const EDITION_DELIMITER: &str = "/";
 impl Contract {
     #[payable]
     pub fn nft_create_series(&mut self, token_series_id: TokenSeriesId, metadata: TokenMetadata) {
+        assert!(
+            !self.series_by_id.contains_key(&token_series_id),
+            "Series already exists"
+        );
+        self.token_metadata_by_series_id
+            .insert(&token_series_id, &metadata);
         let token_series = TokenSeries {
             metadata,
             creator_id: env::signer_account_id(),
@@ -44,16 +50,19 @@ impl Contract {
     }
 
     pub fn nft_get_series_single(&self, token_series_id: TokenSeriesId) -> TokenSeriesJson {
-        let token = self
-            .tokens_by_id
+        let token_series = self
+            .series_by_id
             .get(&token_series_id)
             .expect("Series does not exist");
-        let metadata = self.token_metadata_by_id.get(&token_series_id).unwrap();
+        let metadata = self
+            .token_metadata_by_series_id
+            .get(&token_series_id)
+            .unwrap();
         TokenSeriesJson {
             token_series_id,
             metadata,
-            creator_id: token.creator_id,
-            royalty: token.royalty,
+            creator_id: token_series.creator_id,
+            royalty: HashMap::new(),
         }
     }
 
