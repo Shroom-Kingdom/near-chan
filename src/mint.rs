@@ -8,28 +8,12 @@ impl Contract {
         edition_id: TokenId,
         token_series_id: TokenSeriesId,
         receiver_id: AccountId,
-        //we add an optional parameter for perpetual royalties
-        perpetual_royalties: Option<HashMap<AccountId, u32>>,
     ) {
-        //measure the initial storage being used on the contract
         let initial_storage_usage = env::storage_usage();
 
-        // create a royalty map to store in the token
-        let mut royalty = HashMap::new();
+        let token_series = self.series_by_id.get(&token_series_id).unwrap();
 
-        // if perpetual royalties were passed into the function:
-        if let Some(perpetual_royalties) = perpetual_royalties {
-            //make sure that the length of the perpetual royalties is below 7 since we won't have enough GAS to pay out that many people
-            assert!(
-                perpetual_royalties.len() < 7,
-                "Cannot add more than 6 perpetual royalty amounts"
-            );
-
-            //iterate through the perpetual royalties and insert the account and amount in the royalty map
-            for (account, amount) in perpetual_royalties {
-                royalty.insert(account, amount);
-            }
-        }
+        let royalty = token_series.royalty.clone();
 
         //specify the token struct that contains the owner ID
         let token = Token {
@@ -43,7 +27,7 @@ impl Contract {
             //the map of perpetual royalties for the token (The owner will get 100% - total perpetual royalties)
             royalty,
         };
-        let mut token_id = token_series_id.clone();
+        let mut token_id = token_series_id;
         token_id.push(TOKEN_DELIMITER);
         token_id.push_str(&edition_id);
 
@@ -53,7 +37,6 @@ impl Contract {
         );
         self.tokens_by_id.insert(&token_id, &token);
 
-        let token_series = self.series_by_id.get(&token_series_id).unwrap();
         let mut metadata = token_series.metadata;
         metadata.title = metadata.title.map(|mut title| {
             title.push_str(TITLE_DELIMITER);

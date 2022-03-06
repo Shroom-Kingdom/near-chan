@@ -7,6 +7,7 @@ pub struct TokenSeries {
     pub metadata: TokenMetadata,
     creator_id: AccountId,
     tokens: UnorderedSet<TokenId>,
+    pub royalty: HashMap<AccountId, u32>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -28,7 +29,12 @@ pub const EDITION_DELIMITER: &str = "/";
 #[near_bindgen]
 impl Contract {
     #[payable]
-    pub fn nft_create_series(&mut self, token_series_id: TokenSeriesId, metadata: TokenMetadata) {
+    pub fn nft_create_series(
+        &mut self,
+        token_series_id: TokenSeriesId,
+        metadata: TokenMetadata,
+        royalty: HashMap<AccountId, u32>,
+    ) {
         assert!(
             !self.series_by_id.contains_key(&token_series_id),
             "Series already exists"
@@ -45,6 +51,7 @@ impl Contract {
                 .try_to_vec()
                 .unwrap(),
             ),
+            royalty,
         };
         self.series_by_id.insert(&token_series_id, &token_series);
     }
@@ -62,7 +69,7 @@ impl Contract {
             token_series_id,
             metadata,
             creator_id: token_series.creator_id,
-            royalty: HashMap::new(),
+            royalty: token_series.royalty,
         }
     }
 
