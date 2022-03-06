@@ -7,7 +7,7 @@
 #export NEAR_ENV=mainnet
 export NEAR_ENV=testnet
 #export NFT_CONTRACT_ID="near-chan.shrm.near"
-export NFT_CONTRACT_ID="near-chan-v7.shrm.testnet"
+export NFT_CONTRACT_ID="near-chan-v10.shrm.testnet"
 #export DAO_ID="shrm.sputnik-dao.near"
 export DAO_ID="shrm.sputnik-dao.testnet"
 
@@ -71,11 +71,14 @@ for variant in ${!variant@}; do
     "token_series_id": "'${variant[token_id]}'",
     "metadata": {
       "title": "Shroom Kingdom NEARchan '${variant[title]}'",
-      "description": "https://near-chan.github.io/",
+      "description": "NEARchan is the unofficial mascot of Near Protocol.\nhttps://near-chan.github.io/\n\nShroom Kingdom will integrate her as a playable character.\nThis NFT series has been airdropped to early adopters of Shroom Kingdom. It does not unlock the NEARchan character once the game has been launched!",
       "media": "'${variant[media]}'",
       "copies": '$copies',
       "issued_at": '$timestamp',
       "reference": "'${variant[reference]}'"
+    },
+    "royalty": {
+      "'$DAO_ID'": 1000
     }
   }' --accountId $NFT_CONTRACT_ID --amount 0.1
 
@@ -83,11 +86,48 @@ for variant in ${!variant@}; do
     near call $NFT_CONTRACT_ID nft_mint '{
       "edition_id": "'$i'",
       "token_series_id": "'${variant[token_id]}'",
-      "receiver_id": "'$NFT_CONTRACT_ID'",
-      "perpetual_royalties": {
-        "'$DAO_ID'": 1000
-      }
+      "receiver_id": "'$NFT_CONTRACT_ID'"
     }' --accountId $NFT_CONTRACT_ID --amount 0.1
   done
 done
 ```
+
+### Estimated gas fees
+
+Before minting 6 series of 10:
+
+```json
+❯ near state $NFT_CONTRACT_ID                                                                                  
+Account near-chan-v9.shrm.testnet
+{
+  amount: '9998922348790095900000000',
+  block_hash: 'AawiinLaUiU9rtxyLH4j4TZE1mmvVmAyuMX7r5tfDmH9',
+  block_height: 84359167,
+  code_hash: '6QrxPS42YyBP89r9oqQUWVPETThFefEeeWt8DD4rZa2y',
+  locked: '0',
+  storage_paid_at: 0,
+  storage_usage: 316706,
+  formattedAmount: '9.9989223487900959'
+}
+```
+
+After minting 6 series of 10:
+
+```json
+❯ near state $NFT_CONTRACT_ID
+Account near-chan-v9.shrm.testnet
+{
+  amount: '9931326862688150300000000',
+  block_hash: '4r7FafTVYK4umPiz2shKFMrrQNQ5oZwD7on4RWyGdCSp',
+  block_height: 84359851,
+  code_hash: '6QrxPS42YyBP89r9oqQUWVPETThFefEeeWt8DD4rZa2y',
+  locked: '0',
+  storage_paid_at: 0,
+  storage_usage: 374333,
+  formattedAmount: '9.9313268626881503'
+}
+```
+
+Approximate gas fee for 6 series of 1000:
+
+(9.9989223487900959 - 9.9313268626881503) * 100 = 6.75954861019 NEAR
